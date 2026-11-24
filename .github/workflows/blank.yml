@@ -1,36 +1,41 @@
-# This is a basic workflow to help you get started with Actions
-
-name: CI
-
-# Controls when the workflow will run
+```yaml
+name: Build Android APK
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
+    branches: [main]
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+permissions:
+  contents: read
+
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '8.9'
+      - name: Build APK
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          if [ -f settings.gradle ] && [ -d app ]; then
+            project=.
+          elif [ -f asma-widget/settings.gradle ] && [ -d asma-widget/app ]; then
+            project=asma-widget
+          else
+            echo 'Extract and upload the project source before running this workflow.'
+            exit 1
+          fi
+          sdkmanager 'platforms;android-35' 'build-tools;34.0.0'
+          gradle -p "$project" :app:assembleDebug
+          cp "$project/app/build/outputs/apk/debug/app-debug.apk" Asma-Al-Husna.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Asma-APK
+          path: Asma-Al-Husna.apk
+          if-no-files-found: error
+```

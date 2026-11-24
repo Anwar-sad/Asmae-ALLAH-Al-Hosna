@@ -1,5 +1,5 @@
 name: Build Android APK
-on:
+'on':
   push:
     branches: [main]
   workflow_dispatch:
@@ -37,4 +37,3 @@ jobs:
           name: Asma-APK
           path: Asma-Al-Husna.apk
           if-no-files-found: error
-```
